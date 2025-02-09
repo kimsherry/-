@@ -1,0 +1,57 @@
+import discord
+from discord.ext import commands, tasks
+import random
+import asyncio
+import youtube_dl
+
+# 봇 객체 설정
+intents = discord.Intents.default()
+intents.messages = True
+intents.guilds = True
+intents.message_content = True
+bot = commands.Bot(command_prefix='!', intents=intents)
+
+# 봇이 준비되었을 때
+@bot.event
+async def on_ready():
+    print(f'{bot.user} 가 로그인되었습니다!')
+
+# 메시지 삭제
+@bot.command()
+async def delete(ctx, message_id: int):
+    try:
+        message = await ctx.fetch_message(message_id)
+        await message.delete()
+        await ctx.send(f"메시지 {message_id}가 삭제되었습니다.")
+    except discord.NotFound:
+        await ctx.send("해당 메시지를 찾을 수 없습니다.")
+    except discord.Forbidden:
+        await ctx.send("메시지를 삭제할 권한이 없습니다.")
+    except discord.HTTPException:
+        await ctx.send("메시지 삭제 중 오류가 발생했습니다.")
+
+# 메시지 생성
+@bot.command()
+async def create(ctx, *, content: str):
+    await ctx.send(content)
+
+# 도박 기능 (간단한 주사위 게임)
+@bot.command()
+async def gamble(ctx, bet: int):
+    balance = 1000  # 예시로 기본 1000의 가상 화폐가 있다고 가정
+    if bet <= 0 or bet > balance:
+        await ctx.send("잘못된 베팅 금액입니다.")
+        return
+    
+    result = random.randint(1, 6)  # 주사위 게임
+    outcome = "이겼습니다!" if result >= 4 else "졌습니다!"
+    
+    if outcome == "이겼습니다!":
+        balance += bet
+    else:
+        balance -= bet
+    
+    await ctx.send(f"주사위 결과: {result}, {outcome} 현재 잔고: {balance} 원")
+
+# 봇 토큰으로 로그인
+bot.run('봇토큰 ')
